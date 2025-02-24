@@ -23,15 +23,14 @@ You can install the required Python package by running:
 
 Run the script with the path to your wordlist file as an argument:
     
-   ./get_ip_info ip_list.txt
+       ./get_ip_info ip_list.txt
 
 View the results: The script will display the following information for each IP in the list:
-``
-IP: The IP address
-Organization: The organization associated with the IP (if available)
-Country: The country associated with the IP (if available)
-Check IP: Links to external platforms (AbuseIPDB and VirusTotal) for further investigation
-``
+
+`` IP: The IP address``
+``Organization: The organization associated with the IP (if available)``
+``Country: The country associated with the IP (if available)``
+``Check IP: Links to external platforms (AbuseIPDB and VirusTotal) for further investigation``
 
 ##Example Output:
 ![image](https://github.com/user-attachments/assets/62bf381c-ec27-4c94-8987-74efb3528a32)
