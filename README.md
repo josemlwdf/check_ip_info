@@ -23,7 +23,7 @@ You can install the required Python package by running:
 
 Run the script with the path to your wordlist file as an argument:
     
-       ./get_ip_info ip_list.txt
+    ./get_ip_info ip_list.txt
 
 View the results: The script will display the following information for each IP in the list:
 
