@@ -28,8 +28,11 @@ Run the script with the path to your wordlist file as an argument:
 View the results: The script will display the following information for each IP in the list:
 
 `` IP: The IP address``
+
 ``Organization: The organization associated with the IP (if available)``
+
 ``Country: The country associated with the IP (if available)``
+
 ``Check IP: Links to external platforms (AbuseIPDB and VirusTotal) for further investigation``
 
 ##Example Output:
