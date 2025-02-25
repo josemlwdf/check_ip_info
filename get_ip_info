@@ -8,12 +8,8 @@ import re
 
 # Whitelisted Organizations
 whitelisted = [
-    "Google",
-    "Amazon",
-    "Microsoft",
     "Facebook",
     "Apple",
-    "Cloudflare",
     "GitHub",
     "GitLab",
     "Akamai"]
