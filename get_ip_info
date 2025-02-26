@@ -1,0 +1,336 @@
+#!/usr/bin/env python3
+
+import subprocess
+import time
+import sys
+from tabulate import tabulate
+import re
+
+# Whitelisted Organizations
+whitelisted = [
+    "Facebook",
+    "Apple",
+    "GitHub",
+    "GitLab",
+    "Akamai"]
+
+# Dictionary to map country codes to country names
+country_codes = {
+    "AD": "Andorra",
+    "AE": "United Arab Emirates",
+    "AG": "Antigua and Barbuda",
+    "AI": "Anguilla",
+    "AL": "Albania",
+    "AM": "Armenia",
+    "AO": "Angola",
+    "AQ": "Antarctica",
+    "AR": "Argentina",
+    "AS": "American Samoa",
+    "AT": "Austria",
+    "AU": "Australia",
+    "AW": "Aruba",
+    "AX": "Åland Islands",
+    "AZ": "Azerbaijan",
+    "BA": "Bosnia and Herzegovina",
+    "BB": "Barbados",
+    "BD": "Bangladesh",
+    "BE": "Belgium",
+    "BF": "Burkina Faso",
+    "BG": "Bulgaria",
+    "BH": "Bahrain",
+    "BI": "Burundi",
+    "BJ": "Benin",
+    "BM": "Bermuda",
+    "BN": "Brunei",
+    "BO": "Bolivia",
+    "BOL": "Bolivia",
+    "BQ": "Bonaire",
+    "BR": "Brazil",
+    "BS": "The Bahamas",
+    "BT": "Bhutan",
+    "BW": "Botswana",
+    "BY": "Belarus",
+    "BZ": "Belize",
+    "CA": "Canada",
+    "CG": "Republic of the Congo",
+    "CH": "Switzerland",
+    "CI": "Ivory Coast",
+    "CK": "Cook Islands",
+    "CL": "Chile",
+    "CM": "Cameroon",
+    "CN": "China",
+    "CO": "Colombia",
+    "CR": "Costa Rica",
+    "CU": "Cuba",
+    "CV": "Cabo Verde",
+    "CW": "Curaçao",
+    "CY": "Cyprus",
+    "CZ": "Czech Republic",
+    "DE": "Germany",
+    "DJ": "Djibouti",
+    "DK": "Denmark",
+    "DM": "Dominica",
+    "DO": "Dominican Republic",
+    "DZ": "Algeria",
+    "EC": "Ecuador",
+    "EE": "Estonia",
+    "EG": "Egypt",
+    "ER": "Eritrea",
+    "ES": "Spain",
+    "ET": "Ethiopia",
+    "FI": "Finland",
+    "FJ": "Fiji",
+    "FK": "Falkland Islands",
+    "FO": "Faroe Islands",
+    "FR": "France",
+    "GA": "Gabon",
+    "GB": "United Kingdom",
+    "GD": "Grenada",
+    "GE": "Georgia",
+    "GF": "French Guiana",
+    "GG": "Bailiwick of Guernsey",
+    "GH": "Ghana",
+    "GI": "Gibraltar",
+    "GL": "Greenland",
+    "GM": "The Gambia",
+    "GN": "Guinea",
+    "GP": "Guadeloupe",
+    "GR": "Greece",
+    "GT": "Guatemala",
+    "GU": "Guam",
+    "GW": "Guinea-Bissau",
+    "GY": "Guyana",
+    "HK": "Hong Kong",
+    "HN": "Honduras",
+    "HR": "Croatia",
+    "HT": "Haiti",
+    "HU": "Hungary",
+    "ID": "Indonesia",
+    "IE": "Ireland",
+    "IE": "Republic of Ireland",
+    "IL": "Israel",
+    "IM": "Isle of Man",
+    "IN": "India",
+    "IQ": "Iraq",
+    "IR": "Iran",
+    "IS": "Iceland",
+    "IT": "Italy",
+    "JE": "Jersey",
+    "JM": "Jamaica",
+    "JO": "Jordan",
+    "JP": "Japan",
+    "KE": "Kenya",
+    "KG": "Kyrgyzstan",
+    "KH": "Cambodia",
+    "KI": "Kiribati",
+    "KM": "Comoros",
+    "KR": "South Korea",
+    "KW": "Kuwait",
+    "KY": "Cayman Islands",
+    "KZ": "Kazakhstan",
+    "LA": "Laos",
+    "LB": "Lebanon",
+    "LI": "Liechtenstein",
+    "LK": "Sri Lanka",
+    "LR": "Liberia",
+    "LS": "Lesotho",
+    "LT": "Lithuania",
+    "LU": "Luxembourg",
+    "LV": "Latvia",
+    "LY": "Libya",
+    "MA": "Morocco",
+    "MC": "Monaco",
+    "MD": "Moldova",
+    "ME": "Montenegro",
+    "MG": "Madagascar",
+    "MK": "North Macedonia",
+    "ML": "Mali",
+    "MM": "Myanmar",
+    "MN": "Mongolia",
+    "MO": "Macau",
+    "MQ": "Martinique",
+    "MR": "Mauritania",
+    "MS": "Montserrat",
+    "MT": "Malta",
+    "MU": "Mauritius",
+    "MV": "Maldives",
+    "MW": "Malawi",
+    "MX": "Mexico",
+    "MY": "Malaysia",
+    "MZ": "Mozambique",
+    "NA": "Namibia",
+    "NC": "New Caledonia",
+    "NE": "Niger",
+    "NG": "Nigeria",
+    "NI": "Nicaragua",
+    "NL": "Netherlands",
+    "NO": "Norway",
+    "NP": "Nepal",
+    "NR": "Nauru",
+    "NU": "Niue",
+    "NZ": "New Zealand",
+    "OM": "Oman",
+    "PA": "Panama",
+    "PE": "Peru",
+    "PH": "Philippines",
+    "PK": "Pakistan",
+    "PL": "Poland",
+    "PS": "Palestine",
+    "PT": "Portugal",
+    "PW": "Palau",
+    "PY": "Paraguay",
+    "QA": "Qatar",
+    "RO": "Romania",
+    "RS": "Serbia",
+    "RU": "Russia",
+    "SA": "Saudi Arabia",
+    "SE": "Sweden",
+    "SG": "Singapore",
+    "SI": "Slovenia",
+    "SK": "Slovakia",
+    "SV": "El Salvador",
+    "SY": "Syria",
+    "SZ": "Eswatini",
+    "TD": "Chad",
+    "TH": "Thailand",
+    "TJ": "Tajikistan",
+    "TM": "Turkmenistan",
+    "TT": "Trinidad and Tobago",
+    "UA": "Ukraine",
+    "US": "United States",
+    "UY": "Uruguay",
+    "UZ": "Uzbekistan",
+    "VA": "Holy See",
+    "VE": "Venezuela",
+    "YT": "Mayotte",
+    "ZA": "South Africa"
+}
+
+def is_private_ip(ip):
+    private_ip_ranges = [
+        (167772160, 184549375), # (ip_to_int("10.0.0.0"), ip_to_int("10.255.255.255"))
+        (2886729728, 2887778303), # (ip_to_int("172.16.0.0"), ip_to_int("172.31.255.255"))
+        (3232235520, 3232301055) # (ip_to_int("192.168.0.0"), ip_to_int("192.168.255.255"))
+    ]
+
+    def ip_to_int(ip):
+        return int(''.join(f'{int(octet):08b}' for octet in ip.split('.')), 2)
+
+    ip_int = ip_to_int(ip)
+    for start, end in private_ip_ranges:
+        if start <= ip_int <= end:
+            return True
+    return False
+
+# Function to extract fields from whois output
+def extract_fields(ip):
+    if is_private_ip(ip):
+        return (ip, "Private IP", "Private IP", "N/A")
+
+    # Perform the whois lookup using the system whois command
+    try:
+        whois_output = subprocess.check_output(['whois', ip], stderr=subprocess.PIPE, text=True)
+        
+        # Retry if the whois output is empty or has an error message
+        while not whois_output.strip():
+            print(f"No whois output for IP {ip}, retrying...")
+            time.sleep(1)
+            whois_output = subprocess.check_output(['whois', ip], stderr=subprocess.PIPE, text=True)
+
+        if not whois_output:
+            return
+        
+        descr_param = ""
+        country_param = ""
+
+        if "RIPE" in whois_output:
+            descr_param = "descr"
+            country_param = "country"
+        elif "APNIC" in whois_output:
+            descr_param = "descr"
+            country_param = "country"
+        elif "LACNIC" in whois_output:
+            descr_param = "owner"
+            country_param = "country"
+        elif "AFRINIC" in whois_output:
+            descr_param = "descr"
+            country_param = "country"
+        elif "ARIN" in whois_output:
+            descr_param = "orgname"
+            country_param = "country"
+        else:
+            descr_param = "orgname"
+            country_param = "country"
+
+        descr_done = False
+        country_done = False
+
+        descr = ""
+        country = ""
+        check = f"https://abuseipdb.com/check/{ip}\nhttps://virustotal.com/gui/ip-address/{ip}"
+
+        # Extract the required fields
+        for line in whois_output.splitlines():
+            if descr_param in line.lower() and not descr_done:
+                descr = line.split(':', 1)[1].strip()
+                if descr:
+                    descr_done = True
+                    for whitelisted_org in whitelisted:
+                        if whitelisted_org.lower() in descr.lower():
+                            descr = f"\033[38;5;229m{descr}\033[0m"
+                            check = "N/A"
+                            break
+            elif country_param in line.lower() and not country_done:
+                country = line.split(':', 1)[1].strip()
+                if country:
+                    country_done = True
+        if not descr_done:
+            if "RIPE" in whois_output:
+                descr_param = "netname"
+                for line in whois_output.splitlines():
+                    if descr_param in line.lower():
+                        descr = line.split(':', 1)[1].strip()                        
+            if not descr:
+                descr = "N/A"
+        if not country_done:
+            country = "N/A"
+
+        # Translate country code to country name
+        country = country_codes.get(country, country)
+
+        # Return the results as a tuple
+        return (ip, f"\033[92m{descr}\033[0m", country, check)
+
+    except subprocess.CalledProcessError as e:
+        print(f"Error while fetching whois data for IP {ip}: {e}")
+        return (ip, "Error", "Error", "Error")
+
+# Function to process the wordlist file
+def process_wordlist(wordlist_file):
+    results = []
+    # Check if the wordlist file exists
+    try:
+        with open(wordlist_file, 'r') as file:
+            # Loop through IPs in the wordlist file
+            ips = file.readlines()
+
+            for ip in sorted(set(ips)):
+                is_ip = re.findall(r"\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b", ip)
+                if not is_ip:
+                    continue
+                ip = ip.strip()
+                result = extract_fields(ip)
+                if result:
+                    results.append(result)
+    except FileNotFoundError:
+        print(f"Wordlist file not found: {wordlist_file}")
+        return
+
+    # Display the results in a table
+    headers = ["IP", "Organization", "Country", "Check IP"]
+    print(tabulate(results, headers=headers, tablefmt="grid"))
+
+# Main function
+if __name__ == "__main__":
+    wordlist_file = sys.argv[1]
+    process_wordlist(wordlist_file)
