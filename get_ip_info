@@ -204,6 +204,7 @@ country_codes = {
     "VE": "Venezuela",
     "YT": "Mayotte",
     "ZA": "South Africa"
+    "RE": "Reunion"
 }
 
 def is_private_ip(ip):
